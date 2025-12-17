@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String
+  createdAt DateTime    @default(now())
+  recordings Recording[]
+}
+
+enum RecordingStatus {
+  CREATED
+  UPLOADING
+  UPLOADED
+  PROCESSING
+  DONE
+  FAILED
+  DELETED
+}
+
+model Recording {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String            @db.Uuid
+  user             User              @relation(fields: [userId], references: [id])
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  title            String?
+  durationSec      Int
+  storagePath      String
+  mimeType         String
+  status           RecordingStatus
+  parentRecordingId String?          @db.Uuid
+  parentRecording   Recording?       @relation("Redo", fields: [parentRecordingId], references: [id])
+  children          Recording[]      @relation("Redo")
+  genre             String?
+  errorMessage      String?
+  transcript        Transcript?
+  evaluation        Evaluation?
+  featureSummary    FeatureSummary?
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model Transcript {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recordingId String   @unique @db.Uuid
+  recording   Recording @relation(fields: [recordingId], references: [id])
+  text        String
+  wordsJson   Json?
+}
+
+model Evaluation {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recordingId  String   @unique @db.Uuid
+  recording    Recording @relation(fields: [recordingId], references: [id])
+  rubricVersion String   @default("v1")
+  overallScore  Float
+  scoresJson    Json
+  highlights    String[]
+  bottlenecks   String[]
+  timecodedNotesJson Json
+  drillsJson    Json
+  coachText     String
+
+  @@index([recordingId])
+}
+
+model FeatureSummary {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recordingId  String   @unique @db.Uuid
+  recording    Recording @relation(fields: [recordingId], references: [id])
+  voicedPct    Float?
+  medianF0Hz   Float?
+  pitchStdHz   Float?
+  rmsAvg       Float?
+  rmsStd       Float?
+  computedJson Json?
+
+  @@index([recordingId])
+}
