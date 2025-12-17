@@ -1,0 +1,16 @@
+# Run these on a networked machine to produce vendor tarballs:
+mkdir -p vendor
+npm pack @supabase/auth-helpers-nextjs@0.10.2
+npm pack @supabase/auth-ui-react@0.4.7
+npm pack @supabase/auth-ui-shared@0.1.9
+npm pack @supabase/supabase-js@2.45.4
+npm pack @upstash/qstash@2.5.1
+npm pack @upstash/qstash-nextjs@1.0.4
+npm pack @types/jest@29.5.12
+npm pack @types/node@22.5.0
+npm pack @types/react@18.3.8
+npm pack @types/react-dom@18.3.0
+npm pack @types/wavesurfer.js@6.0.6
+
+# Copy the generated .tgz files into ./vendor, then run:
+# npm install --no-package-lock
